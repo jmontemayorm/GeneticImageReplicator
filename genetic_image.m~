@@ -3,13 +3,19 @@
 % algorithm.
 
 %% Settings
+% Image sources WARNING: Only compatible with 128x128 images for now
+% TODO: Put cell with names, loop through names, automate resize, change
+% genes for the new resize
+%originalImage = rgb2gray(imresize(imread('Y.png'),0.5));
+originalImage = rgb2gray(imresize(imread('sun.jpeg'),128/400));
+
 % Generations
 enableMaxGenerations = 1;
-maxGenerations = 20000;
+maxGenerations = 25000;
 
 % Timeout
 enableTimeout = 1;
-timeoutMinutes = 5;
+timeoutMinutes = 15;
 
 % Fitness
 enanleFitnessBreak = 0;
@@ -17,38 +23,31 @@ fitnessBreak = 0.00001;
 
 % Console output
 suppressOutput = 0;
-modulateOutput = 0;
+modulateOutput = 1;
 outputModulation = 100;
-
-% Elitism
-enableElitism = 0;
-elitismFraction = 0.2;
 
 % Save (file)
 enableSave = 0;
 saveModulation = 100;
 
+% Elitism
+enableElitism = 1;
+elitismFraction = 0.1;
+
 % Population
-populationSize = 100;
+populationSize = 50;
 
 % Specimen
-numOfPolygons = 100;
-x0Idx = 1:7;
-xLenIdx = 8:13;
-y0Idx = 14:20;
-yLenIdx = 21:26;
-colorIdx = 27:34;
-geneSize = 34;
-multiplier8bits = 2 .^ (7:-1:0)';
-multiplier7bits = 2 .^ (6:-1:0)';
-multiplier6bits = 2 .^ (5:-1:0)';
+numOfPolygons = 200;
+polygon_setup % Open to edit
 
-% Image sources
-% TODO: Put cell with names, loop through names
-%originalImage = imread('Y.png');
-% imresize(original,scale)
-% rgb2gray(rgb)
-originalImage = rgb2gray(imresize(imread('Y.png'),0.5));
+paternalProbability = 0.6;
+mutationProbability = 0.001;
+
+% Cooldown
+enableCooldown = 1;
+cooldownModulation = 1000;
+cooldownSeconds = 30;
 
 %% Calculated settings
 % Timeout
@@ -81,6 +80,12 @@ elseif enableMaxGenerations == 0 && enableTimeout == 0
     end
 end
 
+if suppressOutput == 0 && modulateOutput == 1
+    warning('Evolution output logs will be modulated to every %i generations.',outputModulation);
+elseif suppressOutput == 1
+    warning('No logs will be generated during the evolution process.');
+end
+
 %% Initial population
 fprintf('Initializing population... ');
 theLiving = cell(populationSize,1);
@@ -94,15 +99,10 @@ fprintf('Done!\n');
 %% Evolution
 fprintf('Starting evolution process...\n\n');
 
-if suppressOutput == 0 && modulateOutput == 1
-    warning('Evolution output logs will be modulated to every %i generations.',outputModulation);
-elseif suppressOutput == 1
-    warning('No logs will be generated during the evolution process.');
-end
-
 tic
 generation = 1;
 bestFitness = 0;
+blankCanvas = zeros(size(originalImage));
 
 while true % Breaking conditions found before updating the counter
     % Calculate if there will be output in this generation
@@ -114,37 +114,11 @@ while true % Breaking conditions found before updating the counter
         fprintf('Drawing generation number %04i... ',generation);
     end
     for specimen = 1:populationSize
-        % Create an empty canvas to draw the polygons
-        canvas = zeros(size(originalImage));
+        % Get the specimen to draw
+        drawingSpecimen = theLiving{specimen};
         
-        for row = 1:numOfPolygons
-            % Extract data and convert to numeric
-            x0 = theLiving{specimen}(row, x0Idx) * multiplier7bits + 1;
-            xLen = theLiving{specimen}(row, xLenIdx) * multiplier6bits;
-            y0 = theLiving{specimen}(row, y0Idx) * multiplier7bits + 1;
-            yLen = theLiving{specimen}(row, yLenIdx) * multiplier6bits;
-            color = theLiving{specimen}(row, colorIdx) * multiplier8bits;
-            
-            % X index
-            if x0 + xLen > 128
-                x = x0:128;
-            else
-                x = x0:(x0 + xLen);
-            end
-            
-            % Y index
-            if y0 + yLen > 128
-                y = y0:128;
-            else
-                y = y0:(y0 + yLen);
-            end
-            
-            % Draw into canvas
-            canvas(y,x) = canvas(y,x) + color;
-        end
-        
-        % Flatten out canvas
-        canvas(canvas > 255) = 255;
+        % Draw
+        draw_specimen
         
         % Evaluate mismatch
         artworkMismatch(specimen) = sum(sum(abs(canvas - double(originalImage))));
@@ -155,9 +129,9 @@ while true % Breaking conditions found before updating the counter
     
     % Get fitness
     specimenFitness = 1 ./ artworkMismatch;
-    [~,bestIdx] = sort(specimenFitness);
+    [~,bestIdx] = sort(specimenFitness,'descend');
     if printToConsole
-        fprintf('\tBest fitness in this generation is: %0.7f\n',specimenFitness(bestIdx(1)));
+        fprintf('\tBest fitness in this generation is: %0.8f\n',specimenFitness(bestIdx(1)));
     end
     
     % Check and save (RAM) the all-time best
@@ -206,10 +180,13 @@ while true % Breaking conditions found before updating the counter
         firstParentIdx = 0;
         lookingForFirstParent = true;
         while lookingForFirstParent
-            for candidate = populationIndices(allowedIdx)
-                if rand < 0.4 % Equal probability, give a bias to fittest via order?
+            % The most fit are the firsts in line
+            orderedCandidatesIdx = bestIdx(allowedIdx);
+            
+            for candidate = 1:length(orderedCandidatesIdx)                
+                if rand < paternalProbability
                     lookingForFirstParent = false;
-                    firstParentIdx = candidate;
+                    firstParentIdx = orderedCandidatesIdx(candidate);
                     allowedIdx(firstParentIdx) = false;
                     break
                 end
@@ -220,10 +197,13 @@ while true % Breaking conditions found before updating the counter
         secondParentIdx = 0;
         lookingForSecondParent = true;
         while lookingForSecondParent
-            for candidate = populationIndices(allowedIdx)
-                if rand < 0.4 % Equal probability, give a bias to fittest via order?
+            % The most fit are the firsts in line
+            orderedCandidatesIdx = bestIdx(allowedIdx);
+            
+            for candidate = 1:length(orderedCandidatesIdx)
+                if rand < paternalProbability
                     lookingForSecondParent = false;
-                    secondParentIdx = candidate;
+                    secondParentIdx = orderedCandidatesIdx(candidate);
                     break
                 end
             end
@@ -237,7 +217,7 @@ while true % Breaking conditions found before updating the counter
     
     % % % Mutations % % %
     for specimen = 1:populationSize
-        mutate = rand(numOfPolygons, geneSize) < 0.2;
+        mutate = rand(numOfPolygons, geneSize) < mutationProbability;
         theLiving{specimen}(mutate) = ~theLiving{specimen}(mutate);
     end
     
@@ -258,8 +238,8 @@ while true % Breaking conditions found before updating the counter
     end
     
     % Cooldown
-    if mod(generation,100) == 0
-        pause(10);
+    if enableCooldown == 1 && mod(generation,cooldownModulation) == 0
+        pause(cooldownSeconds);
     end
     
     % Go to the next generation
