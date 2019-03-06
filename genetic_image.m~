@@ -3,11 +3,6 @@
 % algorithm.
 
 %% Settings
-% Image sources
-% TODO: Put cell with names, loop through names, automate resize, change
-% genes for the new resize
-originalImage = rgb2gray(imresize(imread('Y.png'),0.5));
-
 % Generations
 enableMaxGenerations = 1;
 maxGenerations = 20000;
@@ -48,10 +43,12 @@ multiplier8bits = 2 .^ (7:-1:0)';
 multiplier7bits = 2 .^ (6:-1:0)';
 multiplier6bits = 2 .^ (5:-1:0)';
 
-% Cooldown
-enableCooldown = 1;
-cooldownModulation = 1000;
-cooldownSeconds = 20;
+% Image sources
+% TODO: Put cell with names, loop through names
+%originalImage = imread('Y.png');
+% imresize(original,scale)
+% rgb2gray(rgb)
+originalImage = rgb2gray(imresize(imread('Y.png'),0.5));
 
 %% Calculated settings
 % Timeout
@@ -261,8 +258,8 @@ while true % Breaking conditions found before updating the counter
     end
     
     % Cooldown
-    if enableCooldown == 1 && mod(generation,cooldownModulation) == 0
-        pause(cooldownSeconds);
+    if mod(generation,100) == 0
+        pause(10);
     end
     
     % Go to the next generation
