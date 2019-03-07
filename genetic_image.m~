@@ -3,22 +3,19 @@
 % algorithm.
 
 %% Settings
-% Image sources WARNING: Only compatible with 128x128 images for now
-% TODO: Put cell with names, loop through names, automate resize, change
-% genes for the new resize
-%originalImage = rgb2gray(imresize(imread('Y.png'),0.5));
-originalImage = rgb2gray(imresize(imread('sun.jpeg'),128/400));
+% Image index (see genetic_sources for details)
+imageIdx = 3;
 
 % Generations
 enableMaxGenerations = 1;
-maxGenerations = 25000;
+maxGenerations = 50000;
 
 % Timeout
-enableTimeout = 1;
-timeoutMinutes = 15;
+enableTimeout = 0;
+timeoutMinutes = 10;
 
 % Fitness
-enanleFitnessBreak = 0;
+enableFitnessBreak = 0;
 fitnessBreak = 0.00001;
 
 % Console output
@@ -26,30 +23,38 @@ suppressOutput = 0;
 modulateOutput = 1;
 outputModulation = 100;
 
-% Save (file)
-enableSave = 0;
-saveModulation = 100;
+% Save checkpoint (.mat file with the whole population)
+enableCheckpoint = 1;
+checkpointModulation = 5000;
+
+% Save image evolution (when fitness improves)
+enableSaveEvolution = 1;
 
 % Elitism
 enableElitism = 1;
 elitismFraction = 0.1;
 
 % Population
-populationSize = 50;
+populationSize = 100;
 
 % Specimen
-numOfPolygons = 200;
-polygon_setup % Open to edit
+numOfPolygons = 5000;
+reducedLengthBits = 3;
 
 paternalProbability = 0.6;
-mutationProbability = 0.001;
+mutationProbability = 0.00001;
 
 % Cooldown
 enableCooldown = 1;
-cooldownModulation = 1000;
-cooldownSeconds = 30;
+cooldownModulation = 50;
+cooldownSeconds = 10;
 
 %% Calculated settings
+% Load image and setup polygons (gene info)
+genetic_sources
+originalImage = rgb2gray(imread([imageNames{imageIdx} imageExtensions{imageIdx}]));
+polygon_setup
+
 % Timeout
 timeout = timeoutMinutes * 60;
 
@@ -67,8 +72,15 @@ else
     outF = pwd;
 end
 
+progressFolder = fullfile(outF,imageNames{imageIdx},'evolution');
+if enableSaveEvolution == 1 && exist(progressFolder,'dir') ~= 7
+    if mkdir(fullfile(outF,imageNames{imageIdx},'evolution')) ~= 1
+        progressFolder = '';
+    end
+end
+
 % Warnings
-if enableMaxGenerations == 0 && enableTimeout == 0 && enanleFitnessBreak == 0
+if enableMaxGenerations == 0 && enableTimeout == 0 && enableFitnessBreak == 0
     error('At least one method of breaking the loop is required.');
 elseif enableMaxGenerations == 0 && enableTimeout == 0
     warning('The loop will only break if the desired fitness is achieved. Achieving the fitness is not guaranteed.');
@@ -101,17 +113,19 @@ fprintf('Starting evolution process...\n\n');
 
 tic
 generation = 1;
+savedImageNumber = 1;
 bestFitness = 0;
 blankCanvas = zeros(size(originalImage));
+setup_genetic_figure
 
 while true % Breaking conditions found before updating the counter
-    % Calculate if there will be output in this generation
+    % Calculate if there will be console output in this generation
     printToConsole = suppressOutput == 0 && (modulateOutput == 0 || (modulateOutput == 1 && mod(generation,outputModulation) == 0));
     
     % % % Evaluation % % %
     % Generate artworks from current population
     if printToConsole
-        fprintf('Drawing generation number %04i... ',generation);
+        fprintf('Drawing generation number %05i... ',generation);
     end
     for specimen = 1:populationSize
         % Get the specimen to draw
@@ -135,15 +149,25 @@ while true % Breaking conditions found before updating the counter
     end
     
     % Check and save (RAM) the all-time best
-    if specimenFitness(bestIdx(1)) >= bestFitness
+    if specimenFitness(bestIdx(1)) > bestFitness
+        % Save the data into memory
         bestFitness = specimenFitness(bestIdx(1));
         bestSpecimen = theLiving{bestIdx(1)};
+        
+        % Plot
+        genetic_figure
+        pause(0)
+        
+        % Save progress image
+        if enableSaveEvolution == 1
+            saveas(f,fullfile(outF,progressFolder,sprintf('%05i.png',savedImageNumber)),'png')
+            savedImageNumber = savedImageNumber + 1;
+        end
     end
     
-    % % % Save the best in the generation % % %
-    if enableSave == 1 && mod(generation,saveModulation) == 0
-       bestOfGen = theLiving{bestIdx(1)};
-       save(fullfile(outF,sprintf('ImageBestOfGen_%07i.mat',generation)),'bestOfGen');
+    % % % Save the living as checkpoint % % %
+    if enableCheckpoint == 1 && mod(generation,checkpointModulation) == 0
+       save(fullfile(outF,sprintf('ImageBestOfGen_%07i.mat',generation)),'theLiving');
     end
     
     % % % Survival of the fittest % % %
@@ -224,22 +248,22 @@ while true % Breaking conditions found before updating the counter
     % % % Breaking mechanisms % % %
     % Break when achieving max generation
     if (enableMaxGenerations == 1 && generation == maxGenerations)
-        break;
+        break
     end
     
     % Break when achieving fitness
-    if (enanleFitnessBreak == 1 && bestFitness >= fitnessBreak)
-        break;
+    if (enableFitnessBreak == 1 && bestFitness >= fitnessBreak)
+        break
     end
     
     % Break when achieving timeout
     if (enableTimeout == 1 && toc >= timeout)
-        break;
+        break
     end
     
     % Cooldown
     if enableCooldown == 1 && mod(generation,cooldownModulation) == 0
-        pause(cooldownSeconds);
+        pause(cooldownSeconds)
     end
     
     % Go to the next generation

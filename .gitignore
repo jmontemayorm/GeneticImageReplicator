@@ -1,2 +1,8 @@
-
+# Ignore MacOS files
 .DS_Store
+
+# Ignore Output folder
+Output/
+
+# Ignore MATLAB temporary files
+*.m~

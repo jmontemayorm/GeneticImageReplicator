@@ -1,9 +1,27 @@
 %% Polygon setup
-xBits = 7;
-yBits = 7;
-xLenBits = 4;
-yLenBits = 4;
+% Maximum bits per color
 colorBits = 8;
+
+% Extract the size of the image
+imageSize = size(originalImage);
+maxX = imageSize(2);
+maxY = imageSize(1);
+
+% Get the necessary number of bits
+xBits = ceil(log2(maxX));
+yBits = ceil(log2(maxY));
+
+% Maximum size of the squares, with reduced bits
+xLenBits = xBits - reducedLengthBits;
+yLenBits = yBits - reducedLengthBits;
+
+% Ensure at least 3 bits for length
+if xLenBits < 3
+    xLenBits = 3;
+end
+if yLenBits < 3
+    yLenBits = 3;
+end
 
 % Polygon indices
 idxCounter = 1;
@@ -25,5 +43,6 @@ colorIdx = idxCounter:(idxCounter - 1 + colorBits);
 % Full polygon gene size
 geneSize = colorIdx(end);
 
-% Multipliers
-multiplier8bits = 2 .^ (7:-1:0)';
+% Multiplier (binary to decimal vector)
+maxBits = max([colorBits xBits yBits]);
+multiplier = 2 .^ ((maxBits - 1):-1:0)';
