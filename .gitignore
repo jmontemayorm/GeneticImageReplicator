@@ -4,5 +4,6 @@
 # Ignore Output folder
 Output/
 
-# Ignore MATLAB temporary files
+# Ignore MATLAB autosave extensions
 *.m~
+*.asv
