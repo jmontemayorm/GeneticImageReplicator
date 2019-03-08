@@ -27,6 +27,10 @@ outputModulation = 100;
 enableCheckpoint = 1;
 checkpointModulation = 5000;
 
+% Start from checkpoint
+startFromCheckpoint = 0;
+checkpoint = 1;
+
 % Save image evolution (when fitness improves)
 enableSaveEvolution = 1;
 
@@ -45,8 +49,8 @@ paternalProbability = 0.6;
 mutationProbability = 0.00001;
 
 % Cooldown
-enableCooldown = 0;
-cooldownModulation = 50;
+enableCooldown = 1;
+cooldownModulation = 200;
 cooldownSeconds = 10;
 
 %% Calculated settings
@@ -118,7 +122,7 @@ bestFitness = 0;
 blankCanvas = zeros(size(originalImage),'uint8');
 
 setup_genetic_figure
-
+%%
 while true % Breaking conditions found before updating the counter
     % Calculate if there will be console output in this generation
     printToConsole = suppressOutput == 0 && (modulateOutput == 0 || (modulateOutput == 1 && mod(generation,outputModulation) == 0));
@@ -166,6 +170,7 @@ while true % Breaking conditions found before updating the counter
         end
     end
     
+    % TODO: FIX CHECKPOINTS
     % % % Save the living as checkpoint % % %
     if enableCheckpoint == 1 && mod(generation,checkpointModulation) == 0
        save(fullfile(outF,sprintf('ImageBestOfGen_%07i.mat',generation)),'theLiving');
