@@ -1,15 +1,11 @@
-%% Draw specimen
 % Empty canvas
 canvas = blankCanvas;
 
 % Extract data
 polygons = drawingSpecimen * multiplier;
 
-% Up start points (will be used as indices)
-polygons(:,1) = polygons(:,1) + 1;
-polygons(:,2) = polygons(:,2) + 1;
-polygons(:,3) = polygons(:,3) + 1;
-polygons(:,4) = polygons(:,4) + 1;
+% Start indices at 1
+polygons(:,1:4) = polygons(:,1:4) + 1;
 
 % Top X start
 polygons(polygons(:,1) > maxX, 1) = maxX;

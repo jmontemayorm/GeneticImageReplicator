@@ -4,11 +4,11 @@
 
 %% Settings
 % Image index (see genetic_sources for details)
-imageIdx = 3;
+imageIdx = 1;
 
 % Generations
 enableMaxGenerations = 1;
-maxGenerations = 50000;
+maxGenerations = 500;
 
 % Timeout
 enableTimeout = 0;
@@ -24,7 +24,7 @@ modulateOutput = 1;
 outputModulation = 100;
 
 % Save checkpoint (.mat file with the whole population)
-enableCheckpoint = 1;
+enableCheckpoint = 0;
 checkpointModulation = 5000;
 
 % Start from checkpoint
@@ -32,7 +32,7 @@ startFromCheckpoint = 0;
 checkpoint = 1;
 
 % Save image evolution (when fitness improves)
-enableSaveEvolution = 1;
+enableSaveEvolution = 0;
 
 % Elitism
 enableElitism = 1;
@@ -49,7 +49,7 @@ paternalProbability = 0.6;
 mutationProbability = 0.00001;
 
 % Cooldown
-enableCooldown = 1;
+enableCooldown = 0;
 cooldownModulation = 200;
 cooldownSeconds = 10;
 
