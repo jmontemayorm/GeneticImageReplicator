@@ -2,42 +2,25 @@
 % Empty canvas
 canvas = blankCanvas;
 
-% Loop through polygons
-for row = 1:numOfPolygons
-    % Extract data and convert to numeric
-    x0 = drawingSpecimen(row, x0Idx) * multiplier((maxBits + 1 - xBits):end) + 1;
-    xLen = drawingSpecimen(row, xLenIdx) * multiplier((maxBits + 1 - xLenBits):end);
-    y0 = drawingSpecimen(row, y0Idx) * multiplier((maxBits + 1 - yBits):end) + 1;
-    yLen = drawingSpecimen(row, yLenIdx) * multiplier((maxBits + 1 - yLenBits):end);
-    color = drawingSpecimen(row, colorIdx) * multiplier((maxBits + 1 - colorBits):end);
-    
-    % Top X
-    if x0 > maxX
-        x0 = maxX;
-    end
-    
-    % Top Y
-    if y0 > maxY
-        y0 = maxY;
-    end
-    
-    % X index
-    if x0 + xLen > maxX
-        x = x0:maxX;
-    else
-        x = x0:(x0 + xLen);
-    end
-    
-    % Y index
-    if y0 + yLen > maxY
-        y = y0:maxY;
-    else
-        y = y0:(y0 + yLen);
-    end
-    
-    % Draw into canvas
-    canvas(y,x) = canvas(y,x) + color;
-end
+% Extract data
+polygons = drawingSpecimen * multiplier;
 
-% Flatten out canvas
-canvas(canvas > 255) = 255;
+% Up start points (will be used as indices)
+polygons(:,1) = polygons(:,1) + 1;
+polygons(:,2) = polygons(:,2) + 1;
+polygons(:,3) = polygons(:,3) + 1;
+polygons(:,4) = polygons(:,4) + 1;
+
+% Top X start
+polygons(polygons(:,1) > maxX, 1) = maxX;
+% Top X end
+polygons(polygons(:,2) > maxX, 2) = maxX;
+% Top Y start
+polygons(polygons(:,3) > maxY, 3) = maxY;
+% Top Y end
+polygons(polygons(:,4) > maxY, 4) = maxY;
+
+% Loop through polygons
+for p = 1:numOfPolygons
+    canvas(polygons(p,3):polygons(p,4),polygons(p,1):polygons(p,2)) = canvas(polygons(p,3):polygons(p,4),polygons(p,1):polygons(p,2)) + uint8(polygons(p,5));
+end

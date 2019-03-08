@@ -43,6 +43,17 @@ colorIdx = idxCounter:(idxCounter - 1 + colorBits);
 % Full polygon gene size
 geneSize = colorIdx(end);
 
-% Multiplier (binary to decimal vector)
-maxBits = max([colorBits xBits yBits]);
-multiplier = 2 .^ ((maxBits - 1):-1:0)';
+% Generate matrix multiplier
+multiplier = zeros(geneSize,5);
+
+multiplier(x0Idx,1) = 2 .^ ((xBits - 1):-1:0)';
+
+multiplier(x0Idx,2) = 2 .^ ((xBits - 1):-1:0)';
+multiplier(xLenIdx,2) = 2 .^ ((xLenBits - 1):-1:0)';
+
+multiplier(y0Idx,3) = 2 .^ ((yBits - 1):-1:0)';
+
+multiplier(y0Idx,4) = 2 .^ ((yBits - 1):-1:0)';
+multiplier(yLenIdx,4) = 2 .^ ((yLenBits - 1):-1:0)';
+
+multiplier(colorIdx,5) = 2 .^ ((colorBits - 1):-1:0)';

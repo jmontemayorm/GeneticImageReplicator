@@ -115,7 +115,8 @@ tic
 generation = 1;
 savedImageNumber = 1;
 bestFitness = 0;
-blankCanvas = zeros(size(originalImage));
+blankCanvas = zeros(size(originalImage),'uint8');
+
 setup_genetic_figure
 
 while true % Breaking conditions found before updating the counter
@@ -135,7 +136,7 @@ while true % Breaking conditions found before updating the counter
         draw_specimen
         
         % Evaluate mismatch
-        artworkMismatch(specimen) = sum(sum(abs(canvas - double(originalImage))));
+        artworkMismatch(specimen) = sum(sum(abs(double(canvas) - double(originalImage))));
     end
     if printToConsole
         fprintf('Done!\n');
