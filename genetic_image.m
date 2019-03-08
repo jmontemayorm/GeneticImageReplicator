@@ -8,7 +8,7 @@ imageIdx = 3;
 
 % Generations
 enableMaxGenerations = 1;
-maxGenerations = 20;
+maxGenerations = 50000;
 
 % Timeout
 enableTimeout = 0;
@@ -19,16 +19,16 @@ enableFitnessBreak = 0;
 fitnessBreak = 0.00001;
 
 % Console output
-suppressOutput = 1;
+suppressOutput = 0;
 modulateOutput = 1;
 outputModulation = 100;
 
 % Save checkpoint (.mat file with the whole population)
-enableCheckpoint = 0;
+enableCheckpoint = 1;
 checkpointModulation = 5000;
 
 % Save image evolution (when fitness improves)
-enableSaveEvolution = 0;
+enableSaveEvolution = 1;
 
 % Elitism
 enableElitism = 1;
