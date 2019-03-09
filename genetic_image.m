@@ -4,11 +4,11 @@
 
 %% Settings
 % Image index (see genetic_sources for details)
-imageIdx = 1;
+imageIdx = 5;
 
 % Generations
 enableMaxGenerations = 1;
-maxGenerations = 500;
+maxGenerations = 99999;
 
 % Timeout
 enableTimeout = 0;
@@ -18,21 +18,25 @@ timeoutMinutes = 10;
 enableFitnessBreak = 0;
 fitnessBreak = 0.00001;
 
+% Stall
+enableStallBreak = 1;
+stallBreak = 5000;
+
 % Console output
 suppressOutput = 0;
 modulateOutput = 1;
 outputModulation = 100;
 
 % Save checkpoint (.mat file with the whole population)
-enableCheckpoint = 0;
+enableCheckpoint = 1;
 checkpointModulation = 5000;
 
-% Start from checkpoint
+% Start from checkpoint %%%%% NOT IMPLEMENTED
 startFromCheckpoint = 0;
 checkpoint = 1;
 
 % Save image evolution (when fitness improves)
-enableSaveEvolution = 0;
+enableSaveEvolution = 1;
 
 % Elitism
 enableElitism = 1;
@@ -42,16 +46,16 @@ elitismFraction = 0.1;
 populationSize = 100;
 
 % Specimen
-numOfPolygons = 5000;
+numOfPolygons = 2000;
 reducedLengthBits = 3;
 
 paternalProbability = 0.6;
-mutationProbability = 0.00001;
+mutationProbability = 0.0001;
 
 % Cooldown
-enableCooldown = 0;
-cooldownModulation = 200;
-cooldownSeconds = 10;
+enableCooldown = 1;
+cooldownModulation = 1000;
+cooldownSeconds = 15;
 
 %% Calculated settings
 % Load image and setup polygons (gene info)
@@ -83,6 +87,7 @@ if enableSaveEvolution == 1 && exist(fullfile(outF,progressFolder),'dir') ~= 7
     end
 end
 
+%%% ADD NEW STALL BREAK
 % Warnings
 if enableMaxGenerations == 0 && enableTimeout == 0 && enableFitnessBreak == 0
     error('At least one method of breaking the loop is required.');
@@ -119,6 +124,8 @@ tic
 generation = 1;
 savedImageNumber = 1;
 bestFitness = 0;
+
+bestGeneration = generation;
 blankCanvas = zeros(size(originalImage),'uint8');
 
 setup_genetic_figure
@@ -132,12 +139,29 @@ while true % Breaking conditions found before updating the counter
     if printToConsole
         fprintf('Drawing generation number %05i... ',generation);
     end
-    for specimen = 1:populationSize
-        % Get the specimen to draw
-        drawingSpecimen = theLiving{specimen};
+    for specimen = 1:populationSize        
+        % Empty canvas
+        canvas = blankCanvas;
         
-        % Draw
-        draw_specimen
+        % Extract data
+        polygons = theLiving{specimen} * multiplier;
+        
+        % Start indices at 1
+        polygons(:,1:4) = polygons(:,1:4) + 1;
+        
+        % Top X start
+        polygons(polygons(:,1) > maxX, 1) = maxX;
+        % Top X end
+        polygons(polygons(:,2) > maxX, 2) = maxX;
+        % Top Y start
+        polygons(polygons(:,3) > maxY, 3) = maxY;
+        % Top Y end
+        polygons(polygons(:,4) > maxY, 4) = maxY;
+        
+        % Loop through polygons
+        for p = 1:numOfPolygons
+            canvas(polygons(p,3):polygons(p,4),polygons(p,1):polygons(p,2)) = canvas(polygons(p,3):polygons(p,4),polygons(p,1):polygons(p,2)) + uint8(polygons(p,5));
+        end
         
         % Evaluate mismatch
         artworkMismatch(specimen) = sum(sum(abs(double(canvas) - double(originalImage))));
@@ -158,6 +182,7 @@ while true % Breaking conditions found before updating the counter
         % Save the data into memory
         bestFitness = specimenFitness(bestIdx(1));
         bestSpecimen = theLiving{bestIdx(1)};
+        bestGeneration = generation;
         
         % Plot
         genetic_figure
@@ -168,12 +193,6 @@ while true % Breaking conditions found before updating the counter
             saveas(f,fullfile(outF,progressFolder,sprintf('%05i.png',savedImageNumber)),'png')
             savedImageNumber = savedImageNumber + 1;
         end
-    end
-    
-    % TODO: FIX CHECKPOINTS
-    % % % Save the living as checkpoint % % %
-    if enableCheckpoint == 1 && mod(generation,checkpointModulation) == 0
-       save(fullfile(outF,sprintf('ImageBestOfGen_%07i.mat',generation)),'theLiving');
     end
     
     % % % Survival of the fittest % % %
@@ -251,6 +270,11 @@ while true % Breaking conditions found before updating the counter
         theLiving{specimen}(mutate) = ~theLiving{specimen}(mutate);
     end
     
+    % % % Save the living as checkpoint % % %
+    if enableCheckpoint == 1 && mod(generation,checkpointModulation) == 0
+       save(fullfile(outF,sprintf('Checkpoint_%s_%05i.mat',imageNames{imageIdx},generation)),'theLiving','generation','savedImageNumber','bestFitness');
+    end
+    
     % % % Breaking mechanisms % % %
     % Break when achieving max generation
     if (enableMaxGenerations == 1 && generation == maxGenerations)
@@ -267,6 +291,11 @@ while true % Breaking conditions found before updating the counter
         break
     end
     
+    % Break when stalled progress
+    if (enableStallBreak == 1 && generation - bestGeneration == stallBreak)
+        break
+    end
+    
     % Cooldown
     if enableCooldown == 1 && mod(generation,cooldownModulation) == 0
         pause(cooldownSeconds)
@@ -279,4 +308,4 @@ end
 elapsedTime = toc;
 toc
 
-fprintf('Evolution sequence complete. Achieved generation %04i!\n',generation);
+fprintf('Evolution sequence complete. Achieved generation %05i!\n',generation);
