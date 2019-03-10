@@ -4,11 +4,11 @@
 
 %% Settings
 % Image index (see genetic_sources for details)
-imageIdx = 1;
+imageIdx = 4;
 
 % Generations
 enableMaxGenerations = 1;
-maxGenerations = 10000;
+maxGenerations = 99999;
 
 % Timeout
 enableTimeout = 0;
@@ -19,7 +19,7 @@ enableFitnessBreak = 0;
 fitnessBreak = 0.00001;
 
 % Stall
-enableStallBreak = 0;
+enableStallBreak = 1;
 stallBreak = 5000;
 
 % Console output
@@ -28,7 +28,7 @@ modulateOutput = 1;
 outputModulation = 100;
 
 % Save checkpoint (.mat file with the whole population)
-enableCheckpoint = 0;
+enableCheckpoint = 1;
 checkpointModulation = 5000;
 
 % Start from checkpoint
@@ -36,7 +36,7 @@ startFromCheckpoint = 0;
 checkpointNumber = 1;
 
 % Save image evolution (when fitness improves)
-enableSaveEvolution = 0;
+enableSaveEvolution = 1;
 
 % Elitism
 enableElitism = 1;
@@ -46,18 +46,18 @@ elitismFraction = 0.1;
 populationSize = 100;
 
 % Specimen
-numOfPolygons = 250;
-reducedLengthBits = 3;
+numOfPolygons = 10000;
+reducedLengthBits = 4;
 
 paternalProbability = 0.6;
 mutationProbability = 0.0001;
 
-startWithBlackCanvas = 1;
+startWithBlackCanvas = 0;
 
 % Cooldown
-enableCooldown = 0;
+enableCooldown = 1;
 cooldownModulation = 1000;
-cooldownSeconds = 15;
+cooldownSeconds = 30;
 
 %% Calculated settings
 % Load image and setup polygons (gene info)
@@ -159,7 +159,7 @@ end
 
 tic
 bestGeneration = generation;
-blankCanvas = zeros(size(originalImage),'uint8');
+blankCanvas = zeros(size(originalImage),'uint8'); % NOTE: need to change this for negative color
 
 genetic_figure_setup
 
