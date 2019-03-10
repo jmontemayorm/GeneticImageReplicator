@@ -62,7 +62,12 @@ cooldownSeconds = 15;
 %% Calculated settings
 % Load image and setup polygons (gene info)
 genetic_sources
-originalImage = rgb2gray(imread([imageNames{imageIdx} imageExtensions{imageIdx}]));
+if imageRGB{imageIdx} == 1
+    % TODO: Implement color
+    originalImage = imresize(imread([imageNames{imageIdx} imageExtensions{imageIdx}]),imageResizeFactor{imageIdx});
+else
+    originalImage = rgb2gray(imresize(imread([imageNames{imageIdx} imageExtensions{imageIdx}]),imageResizeFactor{imageIdx}));
+end
 genetic_polygon_setup
 
 % Timeout
