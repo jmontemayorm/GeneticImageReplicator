@@ -295,6 +295,7 @@ while true % Breaking conditions found before updating the counter
     % % % Save the living as checkpoint % % %
     if enableCheckpoint == 1 && mod(generation,checkpointModulation) == 0
        save(fullfile(outF,sprintf('Checkpoint_%s_%05i.mat',imageNames{imageIdx},generation)),'theLiving','generation','savedImageNumber','bestFitness');
+       fprintf('Saved checkpoint.\n');
     end
     
     % % % Breaking mechanisms % % %
