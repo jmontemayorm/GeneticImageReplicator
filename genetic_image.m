@@ -31,9 +31,9 @@ outputModulation = 100;
 enableCheckpoint = 1;
 checkpointModulation = 5000;
 
-% Start from checkpoint %%%%% NOT IMPLEMENTED
+% Start from checkpoint
 startFromCheckpoint = 0;
-checkpoint = 1;
+checkpointNumber = 1;
 
 % Save image evolution (when fitness improves)
 enableSaveEvolution = 1;
@@ -52,6 +52,8 @@ reducedLengthBits = 3;
 paternalProbability = 0.6;
 mutationProbability = 0.0001;
 
+startWithBlackCanvas = 1;
+
 % Cooldown
 enableCooldown = 1;
 cooldownModulation = 1000;
@@ -61,7 +63,7 @@ cooldownSeconds = 15;
 % Load image and setup polygons (gene info)
 genetic_sources
 originalImage = rgb2gray(imread([imageNames{imageIdx} imageExtensions{imageIdx}]));
-polygon_setup
+genetic_polygon_setup
 
 % Timeout
 timeout = timeoutMinutes * 60;
@@ -87,11 +89,10 @@ if enableSaveEvolution == 1 && exist(fullfile(outF,progressFolder),'dir') ~= 7
     end
 end
 
-%%% ADD NEW STALL BREAK
 % Warnings
-if enableMaxGenerations == 0 && enableTimeout == 0 && enableFitnessBreak == 0
+if enableMaxGenerations == 0 && enableTimeout == 0 && enableFitnessBreak == 0 && enableStallBreak == 0
     error('At least one method of breaking the loop is required.');
-elseif enableMaxGenerations == 0 && enableTimeout == 0
+elseif enableMaxGenerations == 0 && enableTimeout == 0 && enableStallBreak == 0
     warning('The loop will only break if the desired fitness is achieved. Achieving the fitness is not guaranteed.');
     executionOverride = input('Continue execution?\n','s');
     if ~isempty(executionOverride) && (executionOverride(1) == 'y' || executionOverride(1) == 'Y')
@@ -109,27 +110,54 @@ end
 
 %% Initial population
 fprintf('Initializing population... ');
+
+% Allocate memory
 theLiving = cell(populationSize,1);
 artworkMismatch = zeros(populationSize,1);
-populationIndices = 1:populationSize;
+
+% Randomize population
 for specimen = 1:populationSize
     theLiving{specimen} = randi([0, 1], [numOfPolygons, geneSize]);
+    
+    % Black canvas
+    if startWithBlackCanvas == 1
+        theLiving{specimen}(:,colorIdx) = 0;
+    end
 end
+
 fprintf('Done!\n');
 
 %% Evolution
 fprintf('Starting evolution process...\n\n');
 
-tic
 generation = 1;
 savedImageNumber = 1;
 bestFitness = 0;
 
+% Load checkpoint, if selected
+if startFromCheckpoint == 1
+    checkpointFileName = fullfile(outF,sprintf('Checkpoint_%s_%05i.mat',imageNames{imageIdx},checkpointNumber));
+    
+    % Validate checkpoint
+    if exist(checkpointFileName,'file') == 2
+        load(checkpointFileName);
+    else
+        warning('The selected checkpoint was not found.');
+        executionOverride = input('Continue execution from scratch?\n','s');
+        if ~isempty(executionOverride) && (executionOverride(1) == 'y' || executionOverride(1) == 'Y')
+            fprintf('Execution override successful.\n');
+        else
+            error('Execution stoped. Please change the parameters or override execution.');
+        end
+    end
+end
+
+tic
 bestGeneration = generation;
 blankCanvas = zeros(size(originalImage),'uint8');
 
-setup_genetic_figure
-%%
+genetic_figure_setup
+
 while true % Breaking conditions found before updating the counter
     % Calculate if there will be console output in this generation
     printToConsole = suppressOutput == 0 && (modulateOutput == 0 || (modulateOutput == 1 && mod(generation,outputModulation) == 0));
@@ -140,28 +168,8 @@ while true % Breaking conditions found before updating the counter
         fprintf('Drawing generation number %05i... ',generation);
     end
     for specimen = 1:populationSize        
-        % Empty canvas
-        canvas = blankCanvas;
-        
-        % Extract data
-        polygons = theLiving{specimen} * multiplier;
-        
-        % Start indices at 1
-        polygons(:,1:4) = polygons(:,1:4) + 1;
-        
-        % Top X start
-        polygons(polygons(:,1) > maxX, 1) = maxX;
-        % Top X end
-        polygons(polygons(:,2) > maxX, 2) = maxX;
-        % Top Y start
-        polygons(polygons(:,3) > maxY, 3) = maxY;
-        % Top Y end
-        polygons(polygons(:,4) > maxY, 4) = maxY;
-        
-        % Loop through polygons
-        for p = 1:numOfPolygons
-            canvas(polygons(p,3):polygons(p,4),polygons(p,1):polygons(p,2)) = canvas(polygons(p,3):polygons(p,4),polygons(p,1):polygons(p,2)) + uint8(polygons(p,5));
-        end
+        % Get canvas
+        genetic_canvas
         
         % Evaluate mismatch
         artworkMismatch(specimen) = sum(sum(abs(double(canvas) - double(originalImage))));
@@ -178,14 +186,23 @@ while true % Breaking conditions found before updating the counter
     end
     
     % Check and save (RAM) the all-time best
-    if specimenFitness(bestIdx(1)) > bestFitness
+    if specimenFitness(bestIdx(1)) >= bestFitness
         % Save the data into memory
         bestFitness = specimenFitness(bestIdx(1));
         bestSpecimen = theLiving{bestIdx(1)};
         bestGeneration = generation;
         
-        % Plot
-        genetic_figure
+        % Get canvas
+        specimen = bestIdx(1);
+        genetic_canvas
+        
+        % Display
+        subplot(1,2,2)
+        imshow(uint8(canvas))
+        title(sprintf('Replicated image | Generation %05i',generation))
+        set(gca,'FontSize',16)
+        
+        % Pause to update display
         pause(0)
         
         % Save progress image

@@ -14,7 +14,7 @@ set(gca,'FontSize',16)
 
 % Put the title of the replica
 subplot(1,2,2)
-imshow(uint8(255*ones(size(originalImage))))
+imshow(zeros(size(originalImage),'uint8'))
 title('Replicated image')
 set(gca,'FontSize',16)
 

@@ -17,4 +17,8 @@ imageRGB{4} = 0;
 
 imageNames{5} = 'cowboy';
 imageExtensions{5} = '.jpeg';
-imageRGB{4} = 0;
+imageRGB{5} = 0;
+
+imageNames{6} = 'friends';
+imageExtensions{6} = '.jpeg';
+imageRGB{6} = 1;
