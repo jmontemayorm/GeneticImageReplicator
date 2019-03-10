@@ -4,11 +4,11 @@
 
 %% Settings
 % Image index (see genetic_sources for details)
-imageIdx = 5;
+imageIdx = 1;
 
 % Generations
 enableMaxGenerations = 1;
-maxGenerations = 99999;
+maxGenerations = 10000;
 
 % Timeout
 enableTimeout = 0;
@@ -19,7 +19,7 @@ enableFitnessBreak = 0;
 fitnessBreak = 0.00001;
 
 % Stall
-enableStallBreak = 1;
+enableStallBreak = 0;
 stallBreak = 5000;
 
 % Console output
@@ -28,7 +28,7 @@ modulateOutput = 1;
 outputModulation = 100;
 
 % Save checkpoint (.mat file with the whole population)
-enableCheckpoint = 1;
+enableCheckpoint = 0;
 checkpointModulation = 5000;
 
 % Start from checkpoint
@@ -36,7 +36,7 @@ startFromCheckpoint = 0;
 checkpointNumber = 1;
 
 % Save image evolution (when fitness improves)
-enableSaveEvolution = 1;
+enableSaveEvolution = 0;
 
 % Elitism
 enableElitism = 1;
@@ -46,7 +46,7 @@ elitismFraction = 0.1;
 populationSize = 100;
 
 % Specimen
-numOfPolygons = 2000;
+numOfPolygons = 250;
 reducedLengthBits = 3;
 
 paternalProbability = 0.6;
@@ -55,7 +55,7 @@ mutationProbability = 0.0001;
 startWithBlackCanvas = 1;
 
 % Cooldown
-enableCooldown = 1;
+enableCooldown = 0;
 cooldownModulation = 1000;
 cooldownSeconds = 15;
 

@@ -7,3 +7,6 @@ Output/
 # Ignore MATLAB autosave extensions
 *.m~
 *.asv
+
+# Ignore photo of friends (privacy)
+friends.jpeg
