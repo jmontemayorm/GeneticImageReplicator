@@ -26,5 +26,10 @@ imageRGB{5} = 0;
 
 imageNames{6} = 'friends';
 imageExtensions{6} = '.jpeg';
-imageResizeFactor{6} = 0.2;
+imageResizeFactor{6} = 0.1;
 imageRGB{6} = 1;
+
+imageNames{7} = 'red';
+imageExtensions{7} = '.jpeg';
+imageResizeFactor{7} = 0.5;
+imageRGB{7} = 1;

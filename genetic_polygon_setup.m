@@ -40,8 +40,17 @@ idxCounter = yLenIdx(end) + 1;
 
 colorIdx = idxCounter:(idxCounter - 1 + colorBits);
 
+if imageRGB{imageIdx} == 1
+    idxCounter = colorIdx(end) + 1;
+    
+    colorIdx2 = idxCounter:(idxCounter - 1 + colorBits);
+    idxCounter = colorIdx2(end) + 1;
+    
+    colorIdx3 = idxCounter:(idxCounter - 1 + colorBits);
+end
+
 % Full polygon gene size
-geneSize = colorIdx(end);
+geneSize = idxCounter - 1 + colorBits;
 
 % Generate matrix multiplier
 multiplier = zeros(geneSize,5);
@@ -57,3 +66,8 @@ multiplier(y0Idx,4) = 2 .^ ((yBits - 1):-1:0)';
 multiplier(yLenIdx,4) = 2 .^ ((yLenBits - 1):-1:0)';
 
 multiplier(colorIdx,5) = 2 .^ ((colorBits - 1):-1:0)';
+
+if imageRGB{imageIdx} == 1
+    multiplier(colorIdx2,6) = 2 .^ ((colorBits - 1):-1:0)';
+    multiplier(colorIdx3,7) = 2 .^ ((colorBits - 1):-1:0)';
+end
