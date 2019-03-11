@@ -50,8 +50,22 @@ numOfPolygons = 10000;
 reducedLengthBits = 4;
 
 paternalProbability = 0.6;
-mutationProbability = 0.0001;
+ staticmutation=0.0001;
+dynamicmutation=1;
+valimut=0.1;%initial mutation percentage
+valfmut=.0001;
+genlimit=30;%needs setting
+eta=(valfmut-valimut)/genlimit;  
+alpha=(valfmut/valimut)^(1/genlimit);
 
+
+% if dynamicmutation==0
+%     mutationProbability=staticmutation;  
+% end
+% staticmutation=0;
+% 1,2,3 (lineal etc)
+% 1 y 2 vi-vf y genfinal (cuando llega al p final)
+% genfinal=calculate 
 startWithBlackCanvas = 0;
 
 % Cooldown
@@ -60,6 +74,8 @@ cooldownModulation = 1000;
 cooldownSeconds = 30;
 
 %% Calculated settings
+
+% travellng salesman
 % Load image and setup polygons (gene info)
 genetic_sources
 if imageRGB{imageIdx} == 1
@@ -287,6 +303,26 @@ while true % Breaking conditions found before updating the counter
     end
     
     % % % Mutations % % %
+% % % % % % % % % % % % % % % % % % % % % % % % % % %     AQUIr
+% % % % % % % % % % % % % 
+% % % % % % % % 
+% % % % % 
+if generation>genlimit
+    dynamicmutation=0;
+end
+if dynamicmutation==0
+    mutationProbability=staticmutation;
+elseif dynamicmutation==1
+mutationProbability=valimut-eta*generation;    
+elseif dynamicmutation==2
+    mutationProbability=valimut*alpha^generation;
+elseif dynamicmutation==3
+    mutationProbability=valimut+(valfmut-valimut)*cos(pi*generation);
+    
+end
+    
+
+
     for specimen = 1:populationSize
         mutate = rand(numOfPolygons, geneSize) < mutationProbability;
         theLiving{specimen}(mutate) = ~theLiving{specimen}(mutate);
