@@ -4,11 +4,11 @@
 
 %% Settings
 % Image index (see genetic_sources for details)
-imageIdx = 6;
+imageIdx = 2;
 
 % Generations
 enableMaxGenerations = 1;
-maxGenerations = 99999;
+maxGenerations = 20000;
 
 % Timeout
 enableTimeout = 0;
@@ -43,10 +43,10 @@ enableElitism = 1;
 elitismFraction = 0.1;
 
 % Population
-populationSize = 50;
+populationSize = 100;
 
 % Specimen
-numOfPolygons = 3000;
+numOfPolygons = 1000;
 reducedLengthBits = 3;
 
 paternalProbability = 0.6;
@@ -56,8 +56,8 @@ startWithBlackCanvas = 1;
 
 % Cooldown
 enableCooldown = 1;
-cooldownModulation = 100;
-cooldownSeconds = 10;
+cooldownModulation = 1000;
+cooldownSeconds = 15;
 
 %% Calculated settings
 % Load image and setup polygons (gene info)
