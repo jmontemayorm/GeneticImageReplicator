@@ -49,24 +49,21 @@ populationSize = 100;
 numOfPolygons = 10000;
 reducedLengthBits = 4;
 
-paternalProbability = 0.6;
- staticmutation=0.0001;
-dynamicmutation=1;
-valimut=0.1;%initial mutation percentage
-valfmut=.0001;
-genlimit=30;%needs setting
-eta=(valfmut-valimut)/genlimit;  
-alpha=(valfmut/valimut)^(1/genlimit);
-
-
-% if dynamicmutation==0
-%     mutationProbability=staticmutation;  
-% end
-% staticmutation=0;
-% 1,2,3 (lineal etc)
-% 1 y 2 vi-vf y genfinal (cuando llega al p final)
-% genfinal=calculate 
 startWithBlackCanvas = 0;
+
+paternalProbability = 0.6;
+
+% Mutation (0 = static, 1 = linear, 2 = exponential, 3 = cyclical)
+dynamicMutation = 1;
+
+staticMutationProbability = 0.00001;
+
+initialMutationProbability = 0.1;
+finalMutationProbability = 0.00001;
+
+finalDynamicGeneration = 30;
+
+cyclicalWavelengthInGenerations = 50;
 
 % Cooldown
 enableCooldown = 1;
@@ -74,8 +71,6 @@ cooldownModulation = 1000;
 cooldownSeconds = 30;
 
 %% Calculated settings
-
-% travellng salesman
 % Load image and setup polygons (gene info)
 genetic_sources
 if imageRGB{imageIdx} == 1
@@ -95,6 +90,10 @@ if enableElitism == 0
 end
 eliteAmount = floor(populationSize * elitismFraction);
 nonEliteIdx = (eliteAmount + 1):populationSize;
+
+% Mutation
+eta = (finalMutationProbability - initialMutationProbability) / finalDynamicGeneration;  
+alpha = (finalMutationProbability / initialMutationProbability) ^ (1 / finalDynamicGeneration);
 
 % Output folder
 if exist('getOutputFolder','file') == 2
@@ -303,26 +302,24 @@ while true % Breaking conditions found before updating the counter
     end
     
     % % % Mutations % % %
-% % % % % % % % % % % % % % % % % % % % % % % % % % %     AQUIr
-% % % % % % % % % % % % % 
-% % % % % % % % 
-% % % % % 
-if generation>genlimit
-    dynamicmutation=0;
-end
-if dynamicmutation==0
-    mutationProbability=staticmutation;
-elseif dynamicmutation==1
-mutationProbability=valimut-eta*generation;    
-elseif dynamicmutation==2
-    mutationProbability=valimut*alpha^generation;
-elseif dynamicmutation==3
-    mutationProbability=valimut+(valfmut-valimut)*cos(pi*generation);
-    
-end
-    
+    % Stick to a static mutation if dynamic has ended
+    if generation > finalDynamicGeneration
+        dynamicMutation = 0;
+    end
 
-
+    % Calculate the respective mutation probability
+    if dynamicMutation == 1
+        mutationProbability = initialMutationProbability - eta * generation;
+    elseif dynamicMutation == 2
+        mutationProbability = initialMutationProbability * alpha ^ generation;
+    elseif dynamicMutation == 3
+        normalizedCosine = 0.5 * (1 + cos(2 * pi * generation / cyclicalWavelengthInGenerations));
+        mutationProbability = finalMutationProbability + (initialMutationProbability - finalMutationProbability) * normalizedCosine;
+    else
+        mutationProbability = staticMutationProbability;
+    end
+    
+    % Mutate
     for specimen = 1:populationSize
         mutate = rand(numOfPolygons, geneSize) < mutationProbability;
         theLiving{specimen}(mutate) = ~theLiving{specimen}(mutate);
