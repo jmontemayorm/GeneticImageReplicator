@@ -4,11 +4,11 @@
 
 %% Settings
 % Image index (see genetic_sources for details)
-imageIdx = 4;
+imageIdx = 2;
 
 % Generations
 enableMaxGenerations = 1;
-maxGenerations = 99999;
+maxGenerations = 20000;
 
 % Timeout
 enableTimeout = 0;
@@ -46,27 +46,28 @@ elitismFraction = 0.1;
 populationSize = 100;
 
 % Specimen
-numOfPolygons = 10000;
-reducedLengthBits = 4;
+numOfPolygons = 1000;
+reducedLengthBits = 3;
 
 paternalProbability = 0.6;
 mutationProbability = 0.0001;
 
-startWithBlackCanvas = 0;
+startWithBlackCanvas = 1;
 
 % Cooldown
 enableCooldown = 1;
 cooldownModulation = 1000;
-cooldownSeconds = 30;
+cooldownSeconds = 15;
 
 %% Calculated settings
 % Load image and setup polygons (gene info)
 genetic_sources
 if imageRGB{imageIdx} == 1
-    % TODO: Implement color
     originalImage = imresize(imread([imageNames{imageIdx} imageExtensions{imageIdx}]),imageResizeFactor{imageIdx});
+    totalNumOfPixels = size(originalImage,1) * size(originalImage,2) * size(originalImage,3);
 else
     originalImage = rgb2gray(imresize(imread([imageNames{imageIdx} imageExtensions{imageIdx}]),imageResizeFactor{imageIdx}));
+    totalNumOfPixels = size(originalImage,1) * size(originalImage,2);
 end
 genetic_polygon_setup
 
@@ -127,6 +128,10 @@ for specimen = 1:populationSize
     % Black canvas
     if startWithBlackCanvas == 1
         theLiving{specimen}(:,colorIdx) = 0;
+        if imageRGB{imageIdx} == 1
+            theLiving{specimen}(:,colorIdx2) = 0;
+            theLiving{specimen}(:,colorIdx3) = 0;
+        end
     end
 end
 
@@ -159,7 +164,7 @@ end
 
 tic
 bestGeneration = generation;
-blankCanvas = zeros(size(originalImage),'uint8'); % NOTE: need to change this for negative color
+blankCanvas = zeros(size(originalImage),'uint8');
 
 genetic_figure_setup
 
@@ -177,7 +182,11 @@ while true % Breaking conditions found before updating the counter
         genetic_canvas
         
         % Evaluate mismatch
-        artworkMismatch(specimen) = sum(sum(abs(double(canvas) - double(originalImage))));
+        if imageRGB{imageIdx} == 1
+            artworkMismatch(specimen) = sum(sum(sum(abs(double(canvas) - double(originalImage))))) / totalNumOfPixels;
+        else
+            artworkMismatch(specimen) = sum(sum(abs(double(canvas) - double(originalImage)))) / totalNumOfPixels;
+        end
     end
     if printToConsole
         fprintf('Done!\n');
@@ -203,7 +212,7 @@ while true % Breaking conditions found before updating the counter
         
         % Display
         subplot(1,2,2)
-        imshow(uint8(canvas))
+        imshow(canvas)
         title(sprintf('Replicated image | Generation %05i',generation))
         set(gca,'FontSize',16)
         
