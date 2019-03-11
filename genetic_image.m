@@ -49,10 +49,21 @@ populationSize = 100;
 numOfPolygons = 1000;
 reducedLengthBits = 3;
 
-paternalProbability = 0.6;
-mutationProbability = 0.0001;
+startWithBlackCanvas = 0;
 
-startWithBlackCanvas = 1;
+paternalProbability = 0.6;
+
+% Mutation (0 = static, 1 = linear, 2 = exponential, 3 = cyclical)
+dynamicMutation = 1;
+
+staticMutationProbability = 0.00001;
+
+initialMutationProbability = 0.1;
+finalMutationProbability = 0.00001;
+
+finalDynamicGeneration = 30;
+
+cyclicalWavelengthInGenerations = 50;
 
 % Cooldown
 enableCooldown = 1;
@@ -80,6 +91,10 @@ if enableElitism == 0
 end
 eliteAmount = floor(populationSize * elitismFraction);
 nonEliteIdx = (eliteAmount + 1):populationSize;
+
+% Mutation
+eta = (finalMutationProbability - initialMutationProbability) / finalDynamicGeneration;  
+alpha = (finalMutationProbability / initialMutationProbability) ^ (1 / finalDynamicGeneration);
 
 % Output folder
 if exist('getOutputFolder','file') == 2
@@ -296,6 +311,24 @@ while true % Breaking conditions found before updating the counter
     end
     
     % % % Mutations % % %
+    % Stick to a static mutation if dynamic has ended
+    if generation > finalDynamicGeneration
+        dynamicMutation = 0;
+    end
+
+    % Calculate the respective mutation probability
+    if dynamicMutation == 1
+        mutationProbability = initialMutationProbability - eta * generation;
+    elseif dynamicMutation == 2
+        mutationProbability = initialMutationProbability * alpha ^ generation;
+    elseif dynamicMutation == 3
+        normalizedCosine = 0.5 * (1 + cos(2 * pi * generation / cyclicalWavelengthInGenerations));
+        mutationProbability = finalMutationProbability + (initialMutationProbability - finalMutationProbability) * normalizedCosine;
+    else
+        mutationProbability = staticMutationProbability;
+    end
+    
+    % Mutate
     for specimen = 1:populationSize
         mutate = rand(numOfPolygons, geneSize) < mutationProbability;
         theLiving{specimen}(mutate) = ~theLiving{specimen}(mutate);
