@@ -4,11 +4,11 @@
 
 %% Settings
 % Image index (see genetic_sources for details)
-imageIdx = 2;
+imageIdx = 3;
 
 % Generations
 enableMaxGenerations = 1;
-maxGenerations = 20000;
+maxGenerations = 99999;
 
 % Timeout
 enableTimeout = 0;
@@ -16,7 +16,7 @@ timeoutMinutes = 10;
 
 % Fitness
 enableFitnessBreak = 0;
-fitnessBreak = 0.00001;
+fitnessBreak = 0.1;
 
 % Stall
 enableStallBreak = 1;
@@ -28,12 +28,12 @@ modulateOutput = 1;
 outputModulation = 100;
 
 % Save checkpoint (.mat file with the whole population)
-enableCheckpoint = 1;
+enableCheckpoint = 0;
 checkpointModulation = 5000;
 
 % Start from checkpoint
-startFromCheckpoint = 0;
-checkpointNumber = 1;
+startFromCheckpoint = 1;
+checkpointNumber = 15000;
 
 % Save image evolution (when fitness improves)
 enableSaveEvolution = 1;
@@ -46,24 +46,24 @@ elitismFraction = 0.1;
 populationSize = 100;
 
 % Specimen
-numOfPolygons = 1000;
-reducedLengthBits = 3;
+numOfPolygons = 10000;
+reducedLengthBits = 4;
 
-startWithBlackCanvas = 0;
+startWithBlackCanvas = 1;
 
 paternalProbability = 0.6;
 
 % Mutation (0 = static, 1 = linear, 2 = exponential, 3 = cyclical)
-dynamicMutation = 1;
+dynamicMutation = 3;
 
-staticMutationProbability = 0.00001;
+staticMutationProbability = 0.000001;
 
-initialMutationProbability = 0.1;
-finalMutationProbability = 0.00001;
+initialMutationProbability = 0.0001;
+finalMutationProbability = 0.0000001;
 
-finalDynamicGeneration = 30;
+finalDynamicGeneration = 25000;
 
-cyclicalWavelengthInGenerations = 50;
+cyclicalWavelengthInGenerations = 150;
 
 % Cooldown
 enableCooldown = 1;
@@ -166,6 +166,9 @@ if startFromCheckpoint == 1
     % Validate checkpoint
     if exist(checkpointFileName,'file') == 2
         load(checkpointFileName);
+        
+        % Generation is saved before updating the counter
+        generation = generation + 1;
     else
         warning('The selected checkpoint was not found.');
         executionOverride = input('Continue execution from scratch?\n','s');
@@ -215,7 +218,7 @@ while true % Breaking conditions found before updating the counter
     end
     
     % Check and save (RAM) the all-time best
-    if specimenFitness(bestIdx(1)) >= bestFitness
+    if specimenFitness(bestIdx(1)) > bestFitness
         % Save the data into memory
         bestFitness = specimenFitness(bestIdx(1));
         bestSpecimen = theLiving{bestIdx(1)};
